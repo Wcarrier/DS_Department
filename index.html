@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="build" content="1794317233">
+<meta name="build" content="1794318265">
 <title>DS DEPARTMENT</title>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap">
@@ -308,6 +308,24 @@ button:disabled{opacity:1;color:inherit}
 .plist tbody tr.pteam+tr td{border-top:0}
 .bsoon{display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
 .gl-add.pe{font-size:14px}
+.ptop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;border-bottom:1px solid var(--line)}
+.ptop .sbar2{border-bottom:0;flex:0 1 360px}
+.rbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px}
+.rbt{font-size:12px;font-weight:700;color:var(--muted);margin-inline-end:4px}
+.rchip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--rc-b);background:var(--rc-bg);color:var(--rc)}
+.rchip b{font-size:14px;font-weight:900}
+.rchip[aria-pressed="true"]{box-shadow:0 0 0 2px var(--rc)}
+.rclr{border:0;background:transparent;color:var(--muted);font-size:12px;text-decoration:underline;padding:0 4px}
+.r-exp{--rc:var(--bad);--rc-bg:var(--bad-bg);--rc-b:color-mix(in srgb,var(--bad) 35%,transparent)}
+.r-soon{--rc:var(--warn);--rc-bg:var(--warn-bg);--rc-b:color-mix(in srgb,var(--warn) 40%,transparent)}
+.r-ok{--rc:var(--ok);--rc-bg:var(--ok-bg);--rc-b:color-mix(in srgb,var(--ok) 35%,transparent)}
+.r-none{--rc:var(--muted);--rc-bg:var(--sunk);--rc-b:var(--line2)}
+.r-ex{--rc:var(--accent);--rc-bg:color-mix(in srgb,var(--accent) 10%,transparent);--rc-b:color-mix(in srgb,var(--accent) 30%,transparent)}
+.plist td.rng{white-space:nowrap}
+.plist .rd{font-variant-numeric:tabular-nums;font-weight:600;display:inline-block;min-width:84px}
+.plist .rd.na{color:var(--faint);font-weight:500}
+.rtag{display:inline-flex;align-items:center;gap:5px;margin-inline-start:8px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;background:var(--rc-bg);color:var(--rc);border:1px solid var(--rc-b)}
+.rtag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--rc)}
 .qempty{padding:28px 24px;color:var(--muted);font-size:14px}
 .sbar2{padding:14px 16px;border-bottom:1px solid var(--line);max-width:360px}
 header{align-items:center}
@@ -609,19 +627,34 @@ function summaryHtml(){
 function splitName(p){const f=(p.first||"").trim(),l=(p.last||"").trim();if(f||l)return[f,l];const w=String(p.name||"").trim().split(/\s+/);return[w[0]||"",w.slice(1).join(" ")]}
 function fmtPhone(t){const d=String(t||"").replace(/\D/g,"");return d.length===10?d.slice(0,3)+"-"+d.slice(3,6)+"-"+d.slice(6):String(t||"")}
 function bdayIn(b){const m=String(b||"").match(/^(\d{1,2})[.\/](\d{1,2})/);if(!m)return null;const t=D(TODAY);let d=new Date(t.getFullYear(),+m[2]-1,+m[1]);if(d<t)d=new Date(t.getFullYear()+1,+m[2]-1,+m[1]);return Math.round((d-t)/864e5)}
+const RANGE_M=6,RANGE_WARN=30;
+function rangeInfo(r){const t=String(r||"").trim();
+  if(!t)return{k:"none",txt:"—",tag:"חסר תאריך"};
+  if(/פטור/.test(t))return{k:"ex",txt:t,tag:"פטור"};
+  if(/^ל[״"']?ר$/.test(t))return{k:"ex",txt:t,tag:"לא רלוונטי"};
+  const m=t.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})$/);if(!m)return{k:"none",txt:t,tag:"חסר תאריך"};
+  let y=+m[3];if(y<100)y+=2000;const d0=new Date(y,+m[2]-1,+m[1]);const ex=new Date(y,+m[2]-1+RANGE_M,+m[1]);
+  const left=Math.round((ex-D(TODAY))/864e5);const exs=pad(ex.getDate())+"."+pad(ex.getMonth()+1)+"."+ex.getFullYear();
+  const txt=pad(d0.getDate())+"."+pad(d0.getMonth()+1)+"."+d0.getFullYear();
+  if(left<0)return{k:"exp",txt,tag:"פג תוקף · "+exs,left};
+  if(left<=RANGE_WARN)return{k:"soon",txt,tag:left===0?"פג היום":left===1?"פג מחר":`פג בעוד ${left} ימים`,left};
+  return{k:"ok",txt,tag:"בתוקף עד "+exs,left}}
+const RK={exp:"פג תוקף",soon:`פג תוך ${RANGE_WARN} יום`,ok:"בתוקף",none:"חסר תאריך",ex:"פטור / ל״ר"};
 function peopleHtml(){
   const q=(ui.q||"").trim().toLowerCase();
   const match=p=>!q||[p.name,p.first,p.last,p.email,p.phone,p.tz].some(v=>String(v||"").toLowerCase().includes(q));
-  const body=people().filter(match).map(p=>{const[fn,ln]=splitName(p);const bi=bdayIn(p.bday);
+  const all=[...S.people].sort((a,b)=>(a.order||0)-(b.order||0));const cnt={};all.forEach(p=>{const k=rangeInfo(p.range).k;cnt[k]=(cnt[k]||0)+1});
+  const rbar=`<div class="rbar"><span class="rbt">מטווח · תוקף ${RANGE_M} חודשים</span>${["exp","soon","ok","none","ex"].filter(k=>cnt[k]).map(k=>`<button class="rchip r-${k}" data-rf="${k}" aria-pressed="${ui.rf===k}"><b>${cnt[k]}</b>${RK[k]}</button>`).join("")}${ui.rf?`<button class="rclr" data-rf="">הצג את כולם</button>`:""}</div>`;
+  const body=all.filter(match).filter(p=>!ui.rf||rangeInfo(p.range).k===ui.rf).map(p=>{const[fn,ln]=splitName(p);const bi=bdayIn(p.bday);const ri=rangeInfo(p.range);
       return `<tr style="--c:${hue(p.id)}">
       <td class="pn"><span class="pav">${esc(initials(fn+" "+ln))}</span><span class="pnm"><b>${esc(fn)}</b> ${esc(ln)}</span></td>
       <td class="n">${esc(p.tz||"")}</td>
       <td class="pm">${p.email?`<a href="mailto:${esc(p.email)}" dir="ltr">${esc(p.email)}</a>`:""}</td>
       <td class="n">${p.phone?`<a href="tel:${esc(String(p.phone).replace(/\D/g,""))}" dir="ltr">${esc(fmtPhone(p.phone))}</a>`:""}</td>
-      <td class="n${p.range?"":" na"}">${esc(p.range||"—")}</td>
+      <td class="rng"><span class="rd${ri.txt==="—"?" na":""}">${esc(ri.txt)}</span><span class="rtag r-${ri.k}">${esc(ri.tag)}</span></td>
       <td class="n${p.bday?"":" na"}">${esc(p.bday||"—")}${bi!==null&&bi<=30?` <span class="bsoon">${bi===0?"היום 🎉":bi===1?"מחר":`בעוד ${bi} ימים`}</span>`:""}</td>
       <td class="act">${ui.canWrite?`<button class="gl-add pe" data-person="${p.id}" aria-label="עריכת ${esc(p.name)}" title="עריכה">✎</button>`:""}</td></tr>`}).join("");
-  return `<div class="board"><div class="sbar2">${searchBox()}</div>${body?`<div class="tscroll"><table class="slist plist"><thead><tr><th>שם</th><th>ת.ז</th><th>מייל</th><th>טלפון</th><th>תאריך ביצוע מטווח</th><th>יום הולדת</th><th></th></tr></thead><tbody>${body}</tbody></table></div>`:`<div class="qempty">אין אנשים שמתאימים לחיפוש.</div>`}</div>`}
+  return `<div class="board"><div class="ptop"><div class="sbar2">${searchBox()}</div>${rbar}</div>${body?`<div class="tscroll"><table class="slist plist"><thead><tr><th>שם</th><th>ת.ז</th><th>מייל</th><th>טלפון</th><th>תאריך ביצוע מטווח</th><th>יום הולדת</th><th></th></tr></thead><tbody>${body}</tbody></table></div>`:`<div class="qempty">אין אנשים שמתאימים לחיפוש.</div>`}</div>`}
 
 function sheetHtml(){
   const s=ui.sheet;if(!s)return"";
@@ -663,7 +696,7 @@ function render(){
   const gs=document.getElementById("gboard")?.scrollLeft,gs2=document.getElementById("gboard2")?.scrollLeft;
   app.innerHTML=`<header><div class="htitle" dir="ltr"><div class="eyebrow" dir="rtl"><i></i>תכנון הכשרות, קורסים וכנסים</div><h1>DS <em>DEPARTMENT</em></h1></div>${ready?todayHtml():""}
   <div class="hright"><span class="status">עודכן 10.11.2026 · תצוגה בלבד</span>
-    <div class="seg" role="group" aria-label="תצוגה"><button data-view="gantt" aria-pressed="${ui.view!=="summary"}">גאנט</button><button data-view="summary" aria-pressed="${ui.view==="summary"}">סיכום קורסים</button>${ui.peopleTab!==false?`<button data-view="people" aria-pressed="${ui.view==="people"}">אנשים</button>`:""}</div>
+    <div class="seg" role="group" aria-label="תצוגה"><button data-view="gantt" aria-pressed="${ui.view==="gantt"}">קורסים</button><button data-view="summary" aria-pressed="${ui.view==="summary"}">סיכום קורסים</button>${ui.peopleTab!==false?`<button data-view="people" aria-pressed="${ui.view==="people"}">אנשים</button>`:""}</div>
     ${ui.canWrite&&ready?(ui.view==="people"?`<button class="btn primary" data-act="newp">+ איש צוות</button>`:`<button class="btn primary" data-act="newc">+ קורס חדש</button>`):""}</div></header>
   
   ${ready&&nSample&&ui.canWrite?`<div class="note"><span>${nSample} מהקורסים כאן הם דוגמה (מסומנים "דוגמה"). ערוך אותם או מחק את כולם כשתתחיל להכניס קורסים אמיתיים.</span><button class="btn" data-act="clear">${ui.clearArmed?"בטוח? לחץ שוב":"מחק קורסי דוגמה"}</button></div>`:""}
@@ -683,6 +716,7 @@ app.addEventListener("click",e=>{
   if(b.dataset.add){open("add",b.dataset.add);return}
   if(b.dataset.all||b.dataset.clear){if(!db)return;const cid=b.dataset.all||b.dataset.clear;const on=!!b.dataset.all;const pm={};people().forEach(p=>pm[p.id]=on);write("courses/"+cid,()=>db.doc("courses/"+cid).update({people:pm}));return}
   if(b.dataset.quick){if(!db)return;const[cid,pid]=b.dataset.quick.split("|");const c=S.courses.find(x=>x.id===cid);if(!c)return;const on=!has(c,pid);b.setAttribute("aria-pressed",String(on));write("courses/"+cid,()=>db.doc("courses/"+cid).update({people:{[pid]:on}}));return}
+  if(b.dataset.rf!==undefined){ui.rf=ui.rf===b.dataset.rf?"":b.dataset.rf;render();return}
   if(b.dataset.view){ui.view=b.dataset.view;ui.scrolled=false;try{history.replaceState(null,"",ui.view!=="gantt"?"#"+ui.view:location.pathname+location.search)}catch(x){}render();return}
   if(b.dataset.gmode){ui.gmode=b.dataset.gmode;try{localStorage.setItem("ds-gmode",ui.gmode)}catch(x){}render();return}
   if(b.dataset.tog){if(!db||!ui.canWrite)return;const[cid,pid]=b.dataset.tog.split("|");const c=S.courses.find(x=>x.id===cid);if(!c)return;
@@ -717,7 +751,7 @@ app.addEventListener("submit",e=>{e.preventDefault();if(e.target.id!=="sheetf"||
 </script>
 
 <script>
-(function(){var B="1794317233";
+(function(){var B="1794318265";
 function check(){if(document.hidden)return;fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){var m=t.match(/name="build" content="([^"]+)"/);if(m&&m[1]!==B)location.reload()}).catch(function(){})}
 setInterval(check,30000);document.addEventListener("visibilitychange",check);})();
 </script>
