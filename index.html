@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="build" content="1794310555">
+<meta name="build" content="1794310605">
 <title>הכשרות מדור DS</title>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap">
@@ -479,7 +479,7 @@ function ganttHtml(){
   if(!cs.length)return `<div class="board">${tools}<div class="emptyrow">עוד אין קורסים עם תאריכים. לחץ על "+ קורס חדש" כדי לראות אותם על ציר הזמן.</div></div>`;
   const reg=cs.filter(c=>!c.bottom).length?cs.filter(c=>!c.bottom):cs;
   const live=reg.filter(c=>endOf(c)>=TODAY);
-  const start=(live.length?live[0].start:reg[reg.length-1].start).slice(0,7)+"-01";
+  const wk0=addDays(TODAY,-D(TODAY).getDay());const start=live.length?wk0:reg[reg.length-1].start.slice(0,7)+"-01";
   let end=reg.reduce((m,c)=>endOf(c)>m?endOf(c):m,start);
   {const d=D(end.slice(0,7)+"-01");d.setMonth(d.getMonth()+1);d.setDate(0);end=iso(d)}
   const busy=d=>true;
@@ -662,7 +662,7 @@ app.addEventListener("submit",e=>{e.preventDefault();if(e.target.id!=="sheetf"||
 </script>
 
 <script>
-(function(){var B="1794310555";
+(function(){var B="1794310605";
 function check(){if(document.hidden)return;fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){var m=t.match(/name="build" content="([^"]+)"/);if(m&&m[1]!==B)location.reload()}).catch(function(){})}
 setInterval(check,30000);document.addEventListener("visibilitychange",check);})();
 </script>
