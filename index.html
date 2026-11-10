@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta name="build" content="1794309467">
 <title>הכשרות מדור DS</title>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap">
@@ -660,5 +661,10 @@ app.addEventListener("submit",e=>{e.preventDefault();if(e.target.id!=="sheetf"||
 })();
 </script>
 
+<script>
+(function(){var B="1794309467";
+function check(){if(document.hidden)return;fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){var m=t.match(/name="build" content="([^"]+)"/);if(m&&m[1]!==B)location.reload()}).catch(function(){})}
+setInterval(check,30000);document.addEventListener("visibilitychange",check);})();
+</script>
 </body>
 </html>
