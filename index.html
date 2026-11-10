@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="build" content="1794310680">
-<title>הכשרות מדור DS</title>
+<meta name="build" content="1794317170">
+<title>DS Department</title>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap">
 
@@ -50,6 +50,9 @@ header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-be
 .eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 10px var(--accent2)}
 h1{font-size:clamp(30px,5.2vw,46px);font-weight:900;letter-spacing:-.02em;margin:6px 0 0;line-height:1.02;text-wrap:balance}
 h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+header>.hright{order:1}header>.today{order:2}header>.htitle{order:3;text-align:left}
+@media (max-width:700px){header>.htitle{order:0;width:100%}}
+h1 em{letter-spacing:.01em}
 .hright{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .status{font-size:13px;color:var(--muted);min-width:1px}
 .btn{border:1px solid var(--line2);background:var(--surface);border-radius:11px;padding:9px 16px;font-weight:500}
@@ -294,6 +297,14 @@ button:disabled{opacity:1;color:inherit}
 .qsearch input::-webkit-search-cancel-button{display:none}
 .qclr{border:0;background:transparent;color:var(--muted);font-size:16px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;padding:0}
 .qclr:hover{background:var(--raise);color:var(--ink)}
+.plist td.pn{padding-block:6px}
+.plist td.pm a,.plist td.n a{color:inherit;text-decoration:none;font-variant-numeric:tabular-nums}
+.plist td.pm a:hover,.plist td.n a:hover{color:var(--accent2);text-decoration:underline}
+.plist tr.pteam td{background:var(--sunk);font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.04em;padding:8px 16px;border-top:1px solid var(--line)}
+.plist tbody tr.pteam:hover td{background:var(--sunk)}
+.plist tbody tr.pteam+tr td{border-top:0}
+.bsoon{display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.gl-add.pe{font-size:14px}
 .qempty{padding:28px 24px;color:var(--muted);font-size:14px}
 .sbar2{padding:14px 16px;border-bottom:1px solid var(--line);max-width:360px}
 header{align-items:center}
@@ -398,9 +409,10 @@ legend{font-size:12px;color:var(--muted);padding:0 4px;font-weight:500}
 const TEAMS=["צוות א","צוות ב"];
 const HUES=["#6d8dff","#2fd4f0","#a98bff","#3ddc97","#f5b54a","#ff7ab6","#5cc8ff","#ff9f68"];
 const S={people:[],courses:[],loaded:{p:false,c:false}};
-const ui={view:"gantt",gmode:"course",status:"",sheet:null,armed:false,err:"",canWrite:true,dbState:"loading",scrolled:false,clearArmed:false};
-ui.view=location.hash==="#summary"?"summary":"gantt";
-window.addEventListener("hashchange",()=>{ui.view=location.hash==="#summary"?"summary":"gantt";ui.scrolled=false;render()});
+const ui={view:"gantt",gmode:"course",status:"",sheet:null,armed:false,err:"",canWrite:true,peopleTab:false,dbState:"loading",scrolled:false,clearArmed:false};
+const VIEWS=["summary","people"];const hashView=()=>{const h=location.hash.slice(1);return VIEWS.includes(h)&&(h!=="people"||ui.peopleTab!==false)?h:"gantt"};
+ui.view=hashView();
+window.addEventListener("hashchange",()=>{ui.view=hashView();ui.scrolled=false;render()});
 let db=null;
 const app=document.getElementById("app");
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -590,6 +602,26 @@ function summaryHtml(){
   return `${kpi}<div class="board"><div class="sbar2">${searchBox()}</div><div class="tscroll"><table class="slist"><thead><tr><th>קורס / כנס</th><th>תאריכים</th><th>משתתפים</th><th>עלות למשתתף</th><th>סה״כ עלות</th><th></th></tr></thead><tbody>${trs}</tbody>
     <tfoot><tr><td colspan="4">סה״כ${missing?` <small>(${missing===1?"קורס אחד עוד בלי מחיר":`${missing} קורסים עוד בלי מחיר`})</small>`:""}</td><td class="n strong">${sum?money(sum):"—"}</td><td></td></tr></tfoot></table></div></div>`}
 
+/* people view */
+function splitName(p){const f=(p.first||"").trim(),l=(p.last||"").trim();if(f||l)return[f,l];const w=String(p.name||"").trim().split(/\s+/);return[w[0]||"",w.slice(1).join(" ")]}
+function fmtPhone(t){const d=String(t||"").replace(/\D/g,"");return d.length===10?d.slice(0,3)+"-"+d.slice(3,6)+"-"+d.slice(6):String(t||"")}
+function bdayIn(b){const m=String(b||"").match(/^(\d{1,2})[.\/](\d{1,2})/);if(!m)return null;const t=D(TODAY);let d=new Date(t.getFullYear(),+m[2]-1,+m[1]);if(d<t)d=new Date(t.getFullYear()+1,+m[2]-1,+m[1]);return Math.round((d-t)/864e5)}
+function peopleHtml(){
+  const q=(ui.q||"").trim().toLowerCase();
+  const match=p=>!q||[p.name,p.first,p.last,p.email,p.phone,p.tz].some(v=>String(v||"").toLowerCase().includes(q));
+  const body=TEAMS.map(t=>{const tp=people().filter(p=>p.team===t&&match(p));if(!tp.length)return"";
+    return `<tr class="pteam"><td colspan="8">${esc(t)} ${cntHtml(tp.length)}</td></tr>`+tp.map(p=>{const[fn,ln]=splitName(p);const bi=bdayIn(p.bday);
+      return `<tr style="--c:${hue(p.id)}">
+      <td class="pn"><span class="pchip"><i>${esc(initials(p.name))}</i>${esc(fn)}</span></td>
+      <td>${esc(ln)}</td>
+      <td class="n">${esc(p.tz||"")}</td>
+      <td class="pm">${p.email?`<a href="mailto:${esc(p.email)}" dir="ltr">${esc(p.email)}</a>`:""}</td>
+      <td class="n">${p.phone?`<a href="tel:${esc(String(p.phone).replace(/\D/g,""))}" dir="ltr">${esc(fmtPhone(p.phone))}</a>`:""}</td>
+      <td class="n${p.range?"":" na"}">${esc(p.range||"—")}</td>
+      <td class="n${p.bday?"":" na"}">${esc(p.bday||"—")}${bi!==null&&bi<=30?` <span class="bsoon">${bi===0?"היום 🎉":bi===1?"מחר":`בעוד ${bi} ימים`}</span>`:""}</td>
+      <td class="act">${ui.canWrite?`<button class="gl-add pe" data-person="${p.id}" aria-label="עריכת ${esc(p.name)}" title="עריכה">✎</button>`:""}</td></tr>`}).join("")}).join("");
+  return `<div class="board"><div class="sbar2">${searchBox()}</div>${body?`<div class="tscroll"><table class="slist plist"><thead><tr><th>שם פרטי</th><th>שם משפחה</th><th>ת.ז</th><th>מייל</th><th>טלפון</th><th>תאריך ביצוע מטווח</th><th>יום הולדת</th><th></th></tr></thead><tbody>${body}</tbody></table></div>`:`<div class="qempty">אין אנשים שמתאימים לחיפוש.</div>`}</div>`}
+
 function sheetHtml(){
   const s=ui.sheet;if(!s)return"";
   if(s.kind==="add"){const c=S.courses.find(x=>x.id===s.id);if(!c)return"";
@@ -612,6 +644,10 @@ function sheetHtml(){
   return `<div class="scrim" data-act="close"><form class="sheet" id="sheetf" role="dialog" aria-label="איש צוות"><h2>${s.id==="new"?"איש צוות חדש":"עריכת איש צוות"}</h2>
   <label class="f">שם מלא<input id="p-name" value="${esc(p.name)}" placeholder="שם פרטי ושם משפחה"></label>
   <label class="f">צוות<select id="p-team">${TEAMS.map(t=>`<option${t===p.team?" selected":""}>${esc(t)}</option>`).join("")}</select></label>
+  <div class="row2"><label class="f">שם פרטי (לטבלת האנשים)<input id="p-first" value="${esc(p.first||"")}"></label><label class="f">שם משפחה<input id="p-last" value="${esc(p.last||"")}"></label></div>
+  <div class="row2"><label class="f">ת.ז<input id="p-tz" inputmode="numeric" value="${esc(p.tz||"")}"></label><label class="f">טלפון<input id="p-phone" type="tel" dir="ltr" value="${esc(p.phone||"")}"></label></div>
+  <label class="f">מייל<input id="p-email" type="email" dir="ltr" value="${esc(p.email||"")}"></label>
+  <div class="row2"><label class="f">תאריך ביצוע מטווח<input id="p-range" value="${esc(p.range||"")}" placeholder="למשל: 06.01.2026 או פטור"></label><label class="f">יום הולדת<input id="p-bday" value="${esc(p.bday||"")}" placeholder="יום.חודש, למשל 29.01"></label></div>
   ${ui.err?`<div class="err">${esc(ui.err)}</div>`:""}
   <div class="acts"><button class="btn primary" type="submit">שמור</button><button class="btn" type="button" data-act="close">ביטול</button><span class="sp"></span>${s.id!=="new"?`<button type="button" class="btn danger${ui.armed?" armed":""}" data-act="delp">${ui.armed?"בטוח? לחץ להסרה":"הסר מהמדור"}</button>`:""}</div></form></div>`}
 
@@ -621,13 +657,13 @@ function render(){
   if(ui.dbState==="loading")main=`<div class="board"><div class="loading">טוען את הנתונים…</div></div>`;
   else if(ui.dbState==="none")main=`<div class="board"><div class="loading">הנתונים המשותפים לא זמינים בתצוגה הזו. פתח את העמוד מתוך Claude כשאתה מחובר.</div></div>`;
   else if(ui.dbState==="error")main=`<div class="board"><div class="loading">החיבור לנתונים נקטע. רענן את העמוד.</div></div>`;
-  else main=ui.view==="summary"?summaryHtml():ganttHtml();
+  else main=ui.view==="summary"?summaryHtml():ui.view==="people"?peopleHtml():ganttHtml();
   const nSample=S.courses.filter(c=>c.sample).length;
   const gs=document.getElementById("gboard")?.scrollLeft,gs2=document.getElementById("gboard2")?.scrollLeft;
-  app.innerHTML=`<header><div><div class="eyebrow"><i></i>מדור DS · תכנון הכשרות</div><h1>מי יוצא, <em>ומי נשאר</em></h1></div>${ready?todayHtml():""}
+  app.innerHTML=`<header><div class="htitle" dir="ltr"><div class="eyebrow" dir="rtl"><i></i>תכנון הכשרות, קורסים וכנסים</div><h1>DS <em>DEPARTMENT</em></h1></div>${ready?todayHtml():""}
   <div class="hright"><span class="status">עודכן 10.11.2026 · תצוגה בלבד</span>
-    <div class="seg" role="group" aria-label="תצוגה"><button data-view="gantt" aria-pressed="${ui.view!=="summary"}">גאנט</button><button data-view="summary" aria-pressed="${ui.view==="summary"}">סיכום קורסים</button></div>
-    ${ui.canWrite&&ready?`<button class="btn primary" data-act="newc">+ קורס חדש</button>`:""}</div></header>
+    <div class="seg" role="group" aria-label="תצוגה"><button data-view="gantt" aria-pressed="${ui.view!=="summary"}">גאנט</button><button data-view="summary" aria-pressed="${ui.view==="summary"}">סיכום קורסים</button>${ui.peopleTab!==false?`<button data-view="people" aria-pressed="${ui.view==="people"}">אנשים</button>`:""}</div>
+    ${ui.canWrite&&ready?(ui.view==="people"?`<button class="btn primary" data-act="newp">+ איש צוות</button>`:`<button class="btn primary" data-act="newc">+ קורס חדש</button>`):""}</div></header>
   
   ${ready&&nSample&&ui.canWrite?`<div class="note"><span>${nSample} מהקורסים כאן הם דוגמה (מסומנים "דוגמה"). ערוך אותם או מחק את כולם כשתתחיל להכניס קורסים אמיתיים.</span><button class="btn" data-act="clear">${ui.clearArmed?"בטוח? לחץ שוב":"מחק קורסי דוגמה"}</button></div>`:""}
   ${main}${sheetHtml()}`;
@@ -646,7 +682,7 @@ app.addEventListener("click",e=>{
   if(b.dataset.add){open("add",b.dataset.add);return}
   if(b.dataset.all||b.dataset.clear){if(!db)return;const cid=b.dataset.all||b.dataset.clear;const on=!!b.dataset.all;const pm={};people().forEach(p=>pm[p.id]=on);write("courses/"+cid,()=>db.doc("courses/"+cid).update({people:pm}));return}
   if(b.dataset.quick){if(!db)return;const[cid,pid]=b.dataset.quick.split("|");const c=S.courses.find(x=>x.id===cid);if(!c)return;const on=!has(c,pid);b.setAttribute("aria-pressed",String(on));write("courses/"+cid,()=>db.doc("courses/"+cid).update({people:{[pid]:on}}));return}
-  if(b.dataset.view){ui.view=b.dataset.view;ui.scrolled=false;try{history.replaceState(null,"",ui.view==="summary"?"#summary":location.pathname+location.search)}catch(x){}render();return}
+  if(b.dataset.view){ui.view=b.dataset.view;ui.scrolled=false;try{history.replaceState(null,"",ui.view!=="gantt"?"#"+ui.view:location.pathname+location.search)}catch(x){}render();return}
   if(b.dataset.gmode){ui.gmode=b.dataset.gmode;try{localStorage.setItem("ds-gmode",ui.gmode)}catch(x){}render();return}
   if(b.dataset.tog){if(!db||!ui.canWrite)return;const[cid,pid]=b.dataset.tog.split("|");const c=S.courses.find(x=>x.id===cid);if(!c)return;
     const on=!has(c,pid);b.setAttribute("aria-pressed",String(on));
@@ -672,15 +708,15 @@ app.addEventListener("submit",e=>{e.preventDefault();if(e.target.id!=="sheetf"||
     const ext={location:g("c-loc"),deadline:g("c-dl"),note:g("c-note"),details:document.getElementById("c-det").value.trim(),cost:Number(g("c-cost"))||0,inSummary:document.getElementById("c-sum").checked};
     if(s.id==="new"){const ref=db.collection("courses").doc();write("courses/"+ref.id,()=>ref.set({title:t,start:st,end:en,people:pm,...ext,created:Date.now()}))}
     else write("courses/"+s.id,()=>db.doc("courses/"+s.id).update({title:t,start:st,end:en,people:pm,...ext,sample:false}))}
-  else{const n=g("p-name");if(!n){ui.err="צריך שם";render();return}const team=document.getElementById("p-team").value;
-    if(s.id==="new"){const ref=db.collection("people").doc();write("people/"+ref.id,()=>ref.set({name:n,team,order:Date.now()}))}
-    else write("people/"+s.id,()=>db.doc("people/"+s.id).update({name:n,team}))}
+  else{const n=g("p-name");if(!n){ui.err="צריך שם";render();return}const team=document.getElementById("p-team").value;const px={first:g("p-first"),last:g("p-last"),tz:g("p-tz"),phone:g("p-phone"),email:g("p-email"),range:g("p-range"),bday:g("p-bday")};
+    if(s.id==="new"){const ref=db.collection("people").doc();write("people/"+ref.id,()=>ref.set({name:n,team,...px,order:Date.now()}))}
+    else write("people/"+s.id,()=>db.doc("people/"+s.id).update({name:n,team,...px}))}
   ui.sheet=null;render()});
 })();
 </script>
 
 <script>
-(function(){var B="1794310680";
+(function(){var B="1794317170";
 function check(){if(document.hidden)return;fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(t){var m=t.match(/name="build" content="([^"]+)"/);if(m&&m[1]!==B)location.reload()}).catch(function(){})}
 setInterval(check,30000);document.addEventListener("visibilitychange",check);})();
 </script>
