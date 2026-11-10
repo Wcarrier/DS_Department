@@ -36,7 +36,7 @@ html{box-sizing:border-box}body{margin:0}
 *{font-family:var(--f)}
 body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;
   background-image:radial-gradient(900px 400px at 85% -10%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 70%),radial-gradient(700px 300px at 0% 0%,color-mix(in srgb,var(--accent2) 9%,transparent),transparent 70%);background-repeat:no-repeat}
-.wrap{max-width:1320px;margin:0 auto;padding-block:40px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+.wrap{max-width:none;margin:0 auto;padding-block:40px 72px;padding-left:max(clamp(16px,3vw,48px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,3vw,48px),env(safe-area-inset-right,0px));display:grid;gap:28px}
 button,input,select,textarea{font:inherit;font-family:var(--f);color:inherit}
 button{cursor:pointer;-webkit-appearance:none;appearance:none}
 button:disabled{cursor:default}
@@ -258,6 +258,9 @@ button:disabled{opacity:1;color:inherit}
 .gbar.past,.gtxt.past{opacity:.55;filter:saturate(.6)}
 .crow .gbar.sbar{justify-content:center;padding:0;gap:0}
 .crow .gbar.sbar.one{background:transparent;border:0;box-shadow:none;justify-self:center;width:auto}
+.gbar.allone i{display:grid!important;place-items:center;color:var(--on-c)}
+.gbar.allone i svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.gbar.allone i svg circle{fill:currentColor;stroke:none}
 .gbar.one i{width:22px;height:22px;font-size:9px;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 22%,transparent)}
 .slab{z-index:3;align-self:center;justify-self:start;display:inline-flex;align-items:center;gap:4px;height:24px;padding-inline:8px 4px;margin-inline-start:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line2);font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;position:relative}
 .slab::before{content:"";position:absolute;inset-inline-start:-5px;top:50%;width:4px;border-top:1px solid var(--line2)}
@@ -503,7 +506,7 @@ function ganttHtml(){
     const a0=first(c.start);
     const everyone=total>0&&k===total;const kr=everyone?1:k;
     const b0=last(endOf(c));const tagAfter=b0+1<n;const tc=tagAfter?b0+1:first(c.start);
-    const bars=!sp?"":everyone?`<div class="gbar allb${past}" style="${sp};grid-row:2" data-course="${c.id}" title="כל המדור · ${esc(c.title)} · ${esc(range(c))}"><i class="grp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><path d="M14 14.2c.8-.4 1.6-.6 2.5-.6 2.4 0 4.2 1.8 4.2 4.6"/></svg></i><span>כל המדור</span></div>`:pp.map((p,i)=>{const a0=first(c.start),b0=last(endOf(c)),one=b0===a0,short=b0-a0<3;const x=ui.canWrite?`<button class="x" data-rm="${c.id}|${p.id}" aria-label="הסר את ${esc(p.name)} מ${esc(c.title)}" title="הסר מהקורס">×</button>`:"";
+    const bars=!sp?"":everyone&&first(c.start)===last(endOf(c))?`<div class="gbar sbar one allone${past}" style="${sp};grid-row:2" data-course="${c.id}" title="כל המדור · ${esc(c.title)} · ${esc(range(c))}"><i class="grp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><path d="M14 14.2c.8-.4 1.6-.6 2.5-.6 2.4 0 4.2 1.8 4.2 4.6"/></svg></i></div>`:everyone?`<div class="gbar allb${past}" style="${sp};grid-row:2" data-course="${c.id}" title="כל המדור · ${esc(c.title)} · ${esc(range(c))}"><i class="grp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><path d="M14 14.2c.8-.4 1.6-.6 2.5-.6 2.4 0 4.2 1.8 4.2 4.6"/></svg></i><span>כל המדור</span></div>`:pp.map((p,i)=>{const a0=first(c.start),b0=last(endOf(c)),one=b0===a0,short=b0-a0<3;const x=ui.canWrite?`<button class="x" data-rm="${c.id}|${p.id}" aria-label="הסר את ${esc(p.name)} מ${esc(c.title)}" title="הסר מהקורס">×</button>`:"";
       if(!short)return `<div class="gbar${past}" style="${sp};grid-row:${i+2}" data-course="${c.id}" title="${esc(p.name)} · ${esc(c.title)} · ${esc(range(c))}"><i>${esc(initials(p.name))}</i><span>${esc(p.name)}</span>${x}</div>`;
       if(one)return `<div class="gbar sbar one${past}" style="${sp};grid-row:${i+2}" data-course="${c.id}" title="${esc(p.name)} · ${esc(c.title)} · ${esc(range(c))}"><i>${esc(initials(p.name))}</i></div>`;
       const lc=Math.min(n-1,b0+1);return `<div class="gbar sbar${past}" style="${sp};grid-row:${i+2}" data-course="${c.id}" title="${esc(p.name)} · ${esc(c.title)} · ${esc(range(c))}"><i>${esc(initials(p.name))}</i></div><div class="slab${past}" style="grid-column:${2+lc} / ${2+Math.min(n,lc+8)};grid-row:${i+2}"><span>${esc(p.name)}</span>${x}</div>`}).join("");
